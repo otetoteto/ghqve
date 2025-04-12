@@ -40,11 +40,6 @@ pub fn parse_remote_url(remote_url: &str) -> Result<PathBuf> {
         return Ok(PathBuf::from("github.com").join(path));
     }
 
-    // Handle "unknown/dir" format from --force
-    if remote_url.starts_with("unknown/") {
-        return Ok(PathBuf::from(remote_url));
-    }
-
     Err(anyhow!("Could not parse remote URL: {}", remote_url))
 }
 
@@ -115,4 +110,37 @@ pub fn check_target_path_conflict(project_path: &Path, target_path: &Path) -> Re
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_remote_url_with_https() {
+        let url = "https://github.com/user/repo.git";
+        let result = parse_remote_url(url).unwrap();
+        assert_eq!(result, PathBuf::from("github.com").join("user/repo"));
+    }
+
+    #[test]
+    fn test_parse_remote_url_with_shorthand() {
+        let url = "user/repo";
+        let result = parse_remote_url(url).unwrap();
+        assert_eq!(result, PathBuf::from("github.com").join("user/repo"));
+    }
+
+    #[test]
+    fn test_parse_remote_url_with_github_prefix() {
+        let url = "github.com/user/repo";
+        let result = parse_remote_url(url).unwrap();
+        assert_eq!(result, PathBuf::from("github.com").join("user/repo"));
+    }
+
+    #[test]
+    fn test_parse_remote_url_invalid() {
+        let url = "invalid:url";
+        let result = parse_remote_url(url);
+        assert!(result.is_err());
+    }
 }
