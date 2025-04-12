@@ -96,8 +96,7 @@ pub fn check_target_path_conflict(project_path: &Path, target_path: &Path) -> Re
     let project_canonical = project_path.canonicalize().ok();
     let target_parent = target_path
         .parent()
-        .map(|p| p.canonicalize().ok())
-        .flatten()
+        .and_then(|p| p.canonicalize().ok())
         .or_else(|| target_path.canonicalize().ok());
 
     match (project_canonical, target_parent) {
